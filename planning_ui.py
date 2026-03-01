@@ -22,8 +22,8 @@ _logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UK-346-Ch
 if os.path.exists(_logo_path):
     with open(_logo_path, "rb") as _f:
         _logo_b64 = base64.b64encode(_f.read()).decode()
-    LOGO_HTML_SIDEBAR = f'<img src="data:image/png;base64,{_logo_b64}" style="width:180px;" alt="Yellow Stag">'
-    LOGO_HTML_HEADER = f'<img src="data:image/png;base64,{_logo_b64}" style="height:48px; vertical-align:middle; margin-right:12px;" alt="Yellow Stag">'
+    LOGO_HTML_SIDEBAR = f'<img src="data:image/png;base64,{_logo_b64}" style="width:180px; background:#162044; border-radius:6px; padding:6px 10px;" alt="Yellow Stag">'
+    LOGO_HTML_HEADER = f'<img src="data:image/png;base64,{_logo_b64}" style="height:48px; vertical-align:middle; margin-right:12px; background:#162044; border-radius:4px; padding:4px 8px;" alt="Yellow Stag">'
 else:
     LOGO_HTML_SIDEBAR = '<span style="font-size:2.2rem;">🦌</span>'
     LOGO_HTML_HEADER = '🦌'
@@ -288,6 +288,7 @@ def fetch_existing_sheet_data():
     """Read all rows from the Google Sheet and return as a list of row-lists."""
     service = _get_gsheets_service()
     if service is None:
+        st.warning("Could not authenticate with Google Sheets. Check credentials/token.")
         return []
     try:
         result = service.spreadsheets().values().get(
@@ -550,17 +551,18 @@ with col_check:
     if st.button("📊  Preview Sheet Data", use_container_width=True):
         with st.spinner("Fetching Google Sheets data..."):
             rows = fetch_existing_sheet_data()
-            if rows:
-                headers = ["Reference", "Area", "Site Address", "Applicant", "Proposal",
-                           "Decision Date", "Reg Date", "Lead Score", "Architect",
-                           "Architect Contact", "Drive Link", "Detail URL"]
-                # Pad rows to match header length
-                padded = [r + [""] * (len(headers) - len(r)) for r in rows]
-                df = pd.DataFrame(padded, columns=headers)
-                st.session_state.run_results = df
-            else:
-                st.warning("No data found in Google Sheets.")
-        st.rerun()
+        if rows:
+            headers = ["Reference", "Area", "Site Address", "Applicant", "Proposal",
+                       "Decision Date", "Reg Date", "Lead Score", "Architect",
+                       "Architect Contact", "Drive Link", "Detail URL"]
+            # Pad rows to match header length
+            padded = [r + [""] * (len(headers) - len(r)) for r in rows]
+            df = pd.DataFrame(padded, columns=headers)
+            st.session_state.run_results = df
+            st.rerun()
+        else:
+            st.session_state.run_results = None
+            st.warning("No data found in Google Sheets. Check that the token at `final_dlr_planning_consents/gsheets_token.json` is valid and the spreadsheet ID is correct.")
 
 
 # ─── Results Display ──────────────────────────────────────────────────────────
