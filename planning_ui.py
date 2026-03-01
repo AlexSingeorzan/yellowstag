@@ -11,10 +11,22 @@ import subprocess
 import threading
 import time
 import logging
+import base64
 from datetime import datetime, date, timedelta
 
 import streamlit as st
 import pandas as pd
+
+# ─── Logo ────────────────────────────────────────────────────────────────────
+_logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UK-346-Charles-G-Logo-V14_01-Option-1920w.png")
+if os.path.exists(_logo_path):
+    with open(_logo_path, "rb") as _f:
+        _logo_b64 = base64.b64encode(_f.read()).decode()
+    LOGO_HTML_SIDEBAR = f'<img src="data:image/png;base64,{_logo_b64}" style="width:180px;" alt="Yellow Stag">'
+    LOGO_HTML_HEADER = f'<img src="data:image/png;base64,{_logo_b64}" style="height:48px; vertical-align:middle; margin-right:12px;" alt="Yellow Stag">'
+else:
+    LOGO_HTML_SIDEBAR = '<span style="font-size:2.2rem;">🦌</span>'
+    LOGO_HTML_HEADER = '🦌'
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -315,10 +327,9 @@ COUNCIL_DESCRIPTIONS = {
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
+    st.markdown(f"""
     <div style="text-align:center; padding: 1rem 0 0.5rem 0;">
-        <span style="font-size:2.2rem;">🦌</span><br/>
-        <span style="color:#D4A843; font-weight:700; font-size:1.1rem; letter-spacing:1px;">YELLOW STAG</span><br/>
+        {LOGO_HTML_SIDEBAR}<br/>
         <span style="color:#8A8A9A; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase;">Planning Intelligence</span>
     </div>
     """, unsafe_allow_html=True)
@@ -385,9 +396,9 @@ with st.sidebar:
 
 
 # ─── Header ───────────────────────────────────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <div class="ys-header">
-    <h1>🦌 Planning Intelligence Platform</h1>
+    <h1>{LOGO_HTML_HEADER} Planning Intelligence Platform</h1>
     <p>Yellow Stag Services — Proprietary Lead Generation System &nbsp;|&nbsp; Automated extraction from Irish county council planning portals</p>
 </div>
 """, unsafe_allow_html=True)
@@ -528,7 +539,7 @@ col_run, col_check, col_spacer = st.columns([1, 1, 2])
 
 with col_run:
     if st.button(
-        "🦌  Run Extraction" if status != "running" else "⏳  Running...",
+        "▶  Run Extraction" if status != "running" else "⏳  Running...",
         disabled=(status == "running" or date_from > date_to),
         use_container_width=True,
     ):
