@@ -1,0 +1,12 @@
+streamlit>=1.30.0
+pandas
+selenium
+webdriver-manager
+pdfplumber
+pdf2image
+pytesseract
+Pillow
+openpyxl
+google-auth
+google-auth-oauthlib
+google-api-python-client

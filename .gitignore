@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+*.log
+final_dlr_planning_consents/
+dlr_debug/
+_temp_downloads/
+*.token.json
+gsheets_token.json
+gdrive_token.json
+.DS_Store
