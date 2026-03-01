@@ -261,31 +261,37 @@ def _get_gsheets_service():
     token_path = os.path.join(_base, "final_dlr_planning_consents", "gsheets_token.json")
     creds = None
 
-    if os.path.exists(token_path):
+    if not os.path.exists(token_path):
+        st.warning(f"Token file not found at: `{token_path}`")
+    else:
         try:
             creds = Credentials.from_authorized_user_file(token_path, scopes)
         except Exception as e:
             st.warning(f"Token file exists but could not be loaded: {e}")
             creds = None
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
+    if creds and not creds.valid:
+        if creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-                # Save the refreshed token
                 with open(token_path, "w", encoding="utf-8") as f:
                     f.write(creds.to_json())
             except Exception as e:
                 st.warning(f"Token expired and refresh failed: {e}")
                 creds = None
-        if not creds:
-            if not GDRIVE_CREDENTIALS_FILE or not os.path.exists(GDRIVE_CREDENTIALS_FILE):
-                return None
+        else:
+            st.warning("Token is invalid but not refreshable.")
+            creds = None
+
+    if not creds:
+        if GDRIVE_CREDENTIALS_FILE and os.path.exists(GDRIVE_CREDENTIALS_FILE):
             flow = InstalledAppFlow.from_client_secrets_file(GDRIVE_CREDENTIALS_FILE, scopes)
             creds = flow.run_local_server(port=0)
             os.makedirs(os.path.dirname(token_path), exist_ok=True)
             with open(token_path, "w", encoding="utf-8") as f:
                 f.write(creds.to_json())
+        else:
+            return None
 
     return build("sheets", "v4", credentials=creds)
 
