@@ -257,29 +257,35 @@ def _get_gsheets_service():
         return None
 
     scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    token_path = os.path.join(os.getcwd(), "final_dlr_planning_consents", "gsheets_token.json")
+    _base = os.path.dirname(os.path.abspath(__file__))
+    token_path = os.path.join(_base, "final_dlr_planning_consents", "gsheets_token.json")
     creds = None
 
     if os.path.exists(token_path):
         try:
             creds = Credentials.from_authorized_user_file(token_path, scopes)
-        except Exception:
+        except Exception as e:
+            st.warning(f"Token file exists but could not be loaded: {e}")
             creds = None
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-            except Exception:
+                # Save the refreshed token
+                with open(token_path, "w", encoding="utf-8") as f:
+                    f.write(creds.to_json())
+            except Exception as e:
+                st.warning(f"Token expired and refresh failed: {e}")
                 creds = None
         if not creds:
             if not GDRIVE_CREDENTIALS_FILE or not os.path.exists(GDRIVE_CREDENTIALS_FILE):
                 return None
             flow = InstalledAppFlow.from_client_secrets_file(GDRIVE_CREDENTIALS_FILE, scopes)
             creds = flow.run_local_server(port=0)
-        os.makedirs(os.path.dirname(token_path), exist_ok=True)
-        with open(token_path, "w", encoding="utf-8") as f:
-            f.write(creds.to_json())
+            os.makedirs(os.path.dirname(token_path), exist_ok=True)
+            with open(token_path, "w", encoding="utf-8") as f:
+                f.write(creds.to_json())
 
     return build("sheets", "v4", credentials=creds)
 
